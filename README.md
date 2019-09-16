@@ -1,1 +1,1 @@
-# 1-Hackathon-7MTech
+# 1º Hackathon 7MTech
