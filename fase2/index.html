@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Game 7mboots</title>
+    <style>
+        @font-face {
+            font-family: "game";
+            src: url("font/flappy.ttf");
+        }
+
+        #game_over {
+            top: 100px;
+            left: 170px;
+            padding-top: 10px;
+            border-radius: 10px;
+            box-shadow: 2px 1px 12px black;
+            font-family: game;
+            font-size: 25px;
+            color: black;
+            width: 250px;
+            height: 100px;
+            background-color: white;
+            position: absolute;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game_over">
+        FIM DE JOGO
+        <br>
+        pts: <span id="pontos_detail">0</span>
+        <br>
+        <button id="btn_again">JOGAR NOVAMENTE</button>
+    </div>
+    <canvas id="stage" width="570" height="512">
+
+    </canvas>
+    <script>
+
+        var stage = document.getElementById("stage");
+        var ctx = stage.getContext("2d");
+        var person = new Image();
+        var bg = new Image();
+        var fg = new Image();
+        var pipeNorth = new Image();
+        var pipeSouth = new Image();
+
+        person.src = "img/bird.png";
+        bg.src = "img/bg.png";
+        fg.src = "img/fg.png";
+        pipeNorth.src = "img/pipeNorth.png";
+        pipeSouth.src = "img/pipeSouth.png";
+
+        var continua = true;
+
+        var gap = 320;
+        var content = 4000;
+        var bx = 10;
+        var by = 329;
+        var gravity = 3;
+        var gravity_backup = gravity;
+        var score = 0;
+
+        var fly = new Audio();
+        var scor = new Audio();
+        fly.src = "./som/fly.mp3";
+        scor.src = "./som/score.mp3";
+
+        var distancia = 250;
+        //barreiras
+        var pipe = [];
+
+        pipe[0] = {
+            x: stage.width,
+            y: 0
+        }
+        //pulo com o teclado
+        document.addEventListener("keydown", moveUp);
+        //pulo com o mouse
+        document.addEventListener("click", moveUp, false);
+
+        // jogar novamente
+        document.getElementById("btn_again").addEventListener("click", play_again);
+        function moveUp() {
+            if (by > 327) {
+                gravity = -4.0;
+                fly.play();
+                setTimeout(function () {
+                    gravity = gravity_backup;
+                }, 500);
+                by += gravity;
+            }
+        }
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return (Math.floor(Math.random() * (max - min)) + min);
+        }
+        function play_again() {
+            continua = true;
+            score = 0;
+            gravity = gravity_backup;
+            by = 329;
+            document.getElementById("pontos_detail").innerText = score;
+            document.getElementById("game_over").style = "display:nome;";
+            pipe = [];
+            pipe[0] = {
+                x: stage.width,
+                y: 0
+            }
+        }
+
+        function game_over() {
+            continua = false;
+            document.getElementById("pontos_detail").innerText = score;
+            document.getElementById("game_over").style = "display:inline";
+            gravity = 0;
+
+        }
+
+        function draw() {
+            ctx.drawImage(bg, 0, 0);
+
+            //gerar barreiras 
+            for (var i = 0; i < pipe.length; i++) {
+                constant = pipeNorth.height + gap;
+                ctx.drawImage(pipeSouth, pipe[i].x, pipe[i].y + constant);
+
+                //fas a barreira ir para traz
+                pipe[i].x -= 4;
+                console.log(distancia);
+                if (pipe[i].x == distancia) {
+                    pipe.push({
+                        x: stage.width,
+                        y: Math.floor(Math.random() * 10) - Math.floor(Math.random() * 1)
+                    })
+
+                }
+
+                if (continua == false) {
+                    pipe[i].x += 4;
+
+                }
+                // colisão
+                if (bx + person.width >= pipe[i].x && bx <= pipe[i].x + pipeNorth.width
+                    && by + person.height >= pipe[i].y + constant) {
+                    game_over();
+                }
+
+                //console.log(by);
+
+                if (pipe[i].x == 10) {
+                    score++;
+                    scor.play();
+                }
+            }
+            ctx.drawImage(fg, 0, stage.height - fg.height);
+            //person posição inicial
+            var bd = ctx.drawImage(person, bx, by);
+            //gravidade no personagem
+            if (by < 328) {
+                by += gravity;
+            }
+            var width_convas = (stage.width / 2) - 10;
+            ctx.fillStyle = "#FFF";
+            ctx.strokeStyle = "#000";
+            ctx.font = "70px Game";
+            ctx.fillText(score, width_convas, 80);
+            ctx.strokeText(score, width_convas, 80);
+            requestAnimationFrame(draw);
+        }
+
+        window.onload = function () {
+            draw();
+        }
+
+    </script>
+</body>
+
+</html>
